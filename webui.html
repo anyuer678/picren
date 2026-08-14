@@ -3,52 +3,80 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PicRename AI - 图片批量 AI 重命名</title>
+<title>PicRename AI · 图片批量 AI 重命名</title>
 <style>
-:root{--bg:#f5f7fa;--card:#fff;--line:#e2e8f0;--ink:#1e293b;--muted:#64748b;--accent:#2563eb;--ok:#16a34a;--bad:#dc2626}
+/* ============ 设计令牌（kb-ui 风格） ============ */
+:root {
+  --kb-color-primary:#7c6f64; --kb-color-success:#8a9a5b; --kb-color-warning:#c8a45d;
+  --kb-color-danger:#a05d5d; --kb-color-info:#6d7a83;
+  --kb-color-bg:#f4f1ea; --kb-color-bg-elevated:#ebe6db; --kb-color-border:#ddd6c8;
+  --kb-color-text-1:#3d3832; --kb-color-text-2:#6b655b; --kb-color-text-3:#a8a094;
+  --kb-radius-sm:2px; --kb-radius-md:4px; --kb-radius-lg:6px; --kb-radius-round:0;
+  --kb-shadow-1:0 1px 4px rgb(61 56 50/8%); --kb-shadow-2:0 6px 20px rgb(61 56 50/12%);
+  --kb-font:"Noto Serif SC","Songti SC","Hiragino Mincho ProN",serif;
+  --kb-mono:"Cascadia Code",Consolas,"Courier New",monospace;
+  --kb-space-1:4px; --kb-space-2:8px; --kb-space-3:12px; --kb-space-4:16px; --kb-space-5:20px; --kb-space-6:24px;
+}
+/* ============ 组件基座 ============ */
 *{box-sizing:border-box}
-body{margin:0;font-family:"Microsoft YaHei",system-ui,sans-serif;background:var(--bg);color:var(--ink)}
-header{background:var(--card);border-bottom:1px solid var(--line);padding:14px 24px}
-header h1{margin:0;font-size:18px}
-header small{color:var(--muted)}
-.wrap{max-width:960px;margin:20px auto;padding:0 16px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px}
+body{margin:0;background:var(--kb-color-bg);color:var(--kb-color-text-1);font:15px/1.6 var(--kb-font);transition:background .2s,color .2s}
+.wrap{max-width:960px;margin:0 auto;padding:var(--kb-space-6) var(--kb-space-5) 80px}
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:var(--kb-space-4);flex-wrap:wrap}
+header h1{margin:0;font-size:21px;font-weight:600}
+header small{color:var(--kb-color-text-3);font-size:12.5px}
+.card{background:var(--kb-color-bg-elevated);border:1px solid var(--kb-color-border);border-radius:var(--kb-radius-lg);padding:var(--kb-space-4);margin-bottom:var(--kb-space-4)}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-label{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:4px}
-input,select,button{font-size:14px;padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:#fff}
+label{font-size:12.5px;color:var(--kb-color-text-2);display:flex;align-items:center;gap:6px}
+input,select,button{font-size:13.5px;padding:8px 11px;border:1px solid var(--kb-color-border);border-radius:var(--kb-radius-md);background:var(--kb-color-bg);color:var(--kb-color-text-1);font-family:inherit;transition:border-color .15s}
 input[type=text],input[type=password]{min-width:220px}
-button{cursor:pointer;border:1px solid var(--accent);color:var(--accent);background:#fff}
-button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
-button.danger{border-color:var(--bad);color:var(--bad)}
+input:focus,select:focus{outline:none;border-color:var(--kb-color-primary)}
+button{cursor:pointer;border:1px solid var(--kb-color-primary);color:var(--kb-color-primary);background:var(--kb-color-bg)}
+button:hover{border-color:var(--kb-color-primary);background:color-mix(in srgb,var(--kb-color-primary) 6%,transparent)}
+button.primary{background:var(--kb-color-primary);color:var(--kb-color-bg);border-color:var(--kb-color-primary);font-weight:600}
+button.primary:hover{filter:brightness(1.08)}
+button.danger{border-color:var(--kb-color-danger);color:var(--kb-color-danger)}
+button.danger:hover{background:color-mix(in srgb,var(--kb-color-danger) 6%,transparent)}
 button:disabled{opacity:.5;cursor:not-allowed}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);word-break:break-all}
-th{color:var(--muted);font-weight:normal}
-.dir{color:var(--accent);cursor:pointer;font-weight:bold}
-.img{cursor:default;color:var(--ink)}
-.bar{height:4px;background:var(--line);border-radius:2px;margin:8px 0;overflow:hidden}
-.bar>div{height:100%;background:var(--accent)}
-#status{color:var(--muted);font-size:13px}
-#err{color:var(--bad);font-size:13px;white-space:pre-wrap}
+table{width:100%;border-collapse:collapse;font-size:13px;font-family:var(--kb-mono)}
+th,td{text-align:left;padding:6px 9px;border-bottom:1px solid var(--kb-color-border);word-break:break-all}
+th{color:var(--kb-color-text-3);font-weight:500}
+.dir{color:var(--kb-color-primary);cursor:pointer;font-weight:600}
+.img{cursor:default}
+.bar{height:4px;background:var(--kb-color-border);border-radius:2px;margin:8px 0;overflow:hidden}
+.bar>div{height:100%;background:var(--kb-color-primary);transition:width .4s}
+#status{color:var(--kb-color-text-2);font-size:13px}
+#err{color:var(--kb-color-danger);font-size:13px;white-space:pre-wrap}
 #planbox{display:none}
+.entries{max-height:260px;overflow:auto;margin-top:8px;border:1px solid var(--kb-color-border);border-radius:var(--kb-radius-md);padding:4px}
+.entries>div{padding:3px 8px;border-radius:var(--kb-radius-sm);font-size:13.5px}
+.entries>div:hover{background:color-mix(in srgb,var(--kb-color-primary) 6%,transparent)}
+.panel-head{font-size:12.5px;color:var(--kb-color-text-3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;font-weight:500}
+.sec{margin-top:10px}
 </style>
 </head>
 <body>
-<header><h1>PicRename AI <small>图片批量 AI 重命名（本地服务，请勿暴露公网）</small></h1></header>
 <div class="wrap">
+  <div class="topbar">
+    <header>
+      <h1>PicRename AI <small>图片批量 AI 重命名（本地服务，请勿暴露公网）</small></h1>
+    </header>
+      </div>
+
   <div class="card">
+    <div class="panel-head">目录</div>
     <div class="row">
       <input type="text" id="dir" placeholder="图片目录，例如 D:\photos\2026" style="flex:1">
       <button onclick="listDir()">浏览目录</button>
       <button onclick="listDir(parentDir)" disabled id="upbtn">上级</button>
     </div>
-    <div class="row" style="margin-top:8px">
+    <div class="row sec">
       <span id="status">未选择目录</span>
     </div>
-    <div id="entries" style="max-height:260px;overflow:auto;margin-top:8px"></div>
+    <div id="entries" class="entries"></div>
   </div>
 
   <div class="card">
+    <div class="panel-head">识别与命名</div>
     <div class="row">
       <label>模板 <input type="text" id="template" value="{date}_{category}_{subject}_{index}.{ext}" size="30"></label>
       <label>并发 <input type="number" id="workers" value="4" min="1" max="16" style="width:64px"></label>
@@ -56,19 +84,19 @@ th{color:var(--muted);font-weight:normal}
       <label><input type="checkbox" id="move"> 按类别分目录</label>
       <label><input type="checkbox" id="keep" checked> 保留原名</label>
     </div>
-    <div class="row" style="margin-top:8px">
+    <div class="row sec">
       <label>API Key <input type="password" id="apikey" placeholder="留空则用环境变量" style="min-width:200px"></label>
       <label>API Base <input type="text" id="apibase" placeholder="https://api.example.com/v1" size="26"></label>
       <label>模型 <input type="text" id="model" value="qwen-vl-max" size="14"></label>
     </div>
-    <div class="row" style="margin-top:12px">
+    <div class="row sec">
       <button class="primary" onclick="doPreview()">识别并预览</button>
       <button class="danger" onclick="doExecute()">确认执行改名</button>
       <button onclick="doTags()">生成 tags.csv</button>
       <button onclick="doUndo()">回滚上次改名</button>
       <button onclick="loadSample()">加载示例 sample</button>
     </div>
-    <div id="err" style="margin-top:8px"></div>
+    <div id="err" class="sec"></div>
   </div>
 
   <div class="card" id="planbox">
@@ -120,7 +148,7 @@ async function listDir(path) {
   for (const e of data.entries) {
     const div = document.createElement("div");
     div.className = e.is_dir ? "dir" : (e.is_image ? "img" : "");
-    div.textContent = (e.is_dir ? "📁 " : (e.is_image ? "🖼 " : "  ")) + e.name;
+    div.textContent = (e.is_dir ? "▸ " : "") + e.name;
     if (e.is_dir) div.onclick = () => listDir(data.path + "\\" + e.name);
     box.appendChild(div);
   }
@@ -137,7 +165,7 @@ function renderPlan(data) {
     const tr = document.createElement("tr");
     const td = document.createElement("td");
     td.colSpan = 2;
-    td.style.color = "var(--bad)";
+    td.style.color = "var(--kb-color-danger)";
     td.textContent = "识别失败：" + data.failed.map(f => f[0] + " (" + f[1] + ")").join("；");
     tr.appendChild(td); tbody.appendChild(tr);
   }
