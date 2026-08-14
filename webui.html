@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PicRename AI - 图片批量 AI 重命名</title>
+<style>
+:root{--bg:#f5f7fa;--card:#fff;--line:#e2e8f0;--ink:#1e293b;--muted:#64748b;--accent:#2563eb;--ok:#16a34a;--bad:#dc2626}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Microsoft YaHei",system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:var(--card);border-bottom:1px solid var(--line);padding:14px 24px}
+header h1{margin:0;font-size:18px}
+header small{color:var(--muted)}
+.wrap{max-width:960px;margin:20px auto;padding:0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+label{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:4px}
+input,select,button{font-size:14px;padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:#fff}
+input[type=text],input[type=password]{min-width:220px}
+button{cursor:pointer;border:1px solid var(--accent);color:var(--accent);background:#fff}
+button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+button.danger{border-color:var(--bad);color:var(--bad)}
+button:disabled{opacity:.5;cursor:not-allowed}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);word-break:break-all}
+th{color:var(--muted);font-weight:normal}
+.dir{color:var(--accent);cursor:pointer;font-weight:bold}
+.img{cursor:default;color:var(--ink)}
+.bar{height:4px;background:var(--line);border-radius:2px;margin:8px 0;overflow:hidden}
+.bar>div{height:100%;background:var(--accent)}
+#status{color:var(--muted);font-size:13px}
+#err{color:var(--bad);font-size:13px;white-space:pre-wrap}
+#planbox{display:none}
+</style>
+</head>
+<body>
+<header><h1>PicRename AI <small>图片批量 AI 重命名（本地服务，请勿暴露公网）</small></h1></header>
+<div class="wrap">
+  <div class="card">
+    <div class="row">
+      <input type="text" id="dir" placeholder="图片目录，例如 D:\photos\2026" style="flex:1">
+      <button onclick="listDir()">浏览目录</button>
+      <button onclick="listDir(parentDir)" disabled id="upbtn">上级</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <span id="status">未选择目录</span>
+    </div>
+    <div id="entries" style="max-height:260px;overflow:auto;margin-top:8px"></div>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <label>模板 <input type="text" id="template" value="{date}_{category}_{subject}_{index}.{ext}" size="30"></label>
+      <label>并发 <input type="number" id="workers" value="4" min="1" max="16" style="width:64px"></label>
+      <label><input type="checkbox" id="recursive"> 递归子目录</label>
+      <label><input type="checkbox" id="move"> 按类别分目录</label>
+      <label><input type="checkbox" id="keep" checked> 保留原名</label>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <label>API Key <input type="password" id="apikey" placeholder="留空则用环境变量" style="min-width:200px"></label>
+      <label>API Base <input type="text" id="apibase" placeholder="https://api.example.com/v1" size="26"></label>
+      <label>模型 <input type="text" id="model" value="qwen-vl-max" size="14"></label>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button class="primary" onclick="doPreview()">识别并预览</button>
+      <button class="danger" onclick="doExecute()">确认执行改名</button>
+      <button onclick="doTags()">生成 tags.csv</button>
+      <button onclick="doUndo()">回滚上次改名</button>
+      <button onclick="loadSample()">加载示例 sample</button>
+    </div>
+    <div id="err" style="margin-top:8px"></div>
+  </div>
+
+  <div class="card" id="planbox">
+    <div class="row"><b>计划（dry-run，未修改文件）</b><span id="stat"></span></div>
+    <div id="bar" class="bar"><div id="barfill" style="width:0%"></div></div>
+    <table id="plan"><thead><tr><th>原文件名</th><th>新文件名</th></tr></thead><tbody></tbody></table>
+  </div>
+</div>
+
+<script>
+let parentDir = "";
+function $(id){return document.getElementById(id)}
+function setStatus(s){$("status").textContent=s}
+function setErr(s){$("err").textContent=s||""}
+
+function form() {
+  return {
+    dir: $("dir").value.trim(),
+    template: $("template").value.trim(),
+    workers: parseInt($("workers").value||"4",10),
+    recursive: $("recursive").checked,
+    move_by_category: $("move").checked,
+    keep_original: $("keep").checked,
+    api_key: $("apikey").value.trim(),
+    api_base: $("apibase").value.trim(),
+    model: $("model").value.trim()
+  };
+}
+
+async function post(path, data) {
+  const r = await fetch(path, {method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify(data)});
+  return r.json();
+}
+
+async function listDir(path) {
+  const p = path || $("dir").value.trim();
+  if (!p) { setErr("请先输入目录路径"); return; }
+  setStatus("加载 " + p + " ...");
+  const data = await (await fetch("/api/list?path=" + encodeURIComponent(p))).json();
+  if (!data.ok) { setErr(data.error); setStatus(""); return; }
+  parentDir = data.parent;
+  $("upbtn").disabled = !data.parent;
+  $("dir").value = data.path;
+  setStatus(data.path + "（图片 " + data.image_count + " 张）");
+  setErr("");
+  const box = $("entries");
+  box.innerHTML = "";
+  for (const e of data.entries) {
+    const div = document.createElement("div");
+    div.className = e.is_dir ? "dir" : (e.is_image ? "img" : "");
+    div.textContent = (e.is_dir ? "📁 " : (e.is_image ? "🖼 " : "  ")) + e.name;
+    if (e.is_dir) div.onclick = () => listDir(data.path + "\\" + e.name);
+    box.appendChild(div);
+  }
+}
+
+function renderPlan(data) {
+  const box = $("planbox"), tbody = $("plan").querySelector("tbody");
+  box.style.display = "block";
+  tbody.innerHTML = "";
+  $("stat").textContent = `收集 ${data.total} 张，识别成功 ${data.recognized} 张` +
+    (data.failed.length ? `，失败 ${data.failed.length} 张` : "") + `，耗时 ${data.elapsed_s}s`;
+  $("barfill").style.width = data.total ? Math.round(data.recognized/data.total*100) + "%" : "0%";
+  if (data.failed.length) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 2;
+    td.style.color = "var(--bad)";
+    td.textContent = "识别失败：" + data.failed.map(f => f[0] + " (" + f[1] + ")").join("；");
+    tr.appendChild(td); tbody.appendChild(tr);
+  }
+  for (const it of data.planned) {
+    const tr = document.createElement("tr");
+    const a = document.createElement("td"); a.textContent = it.src;
+    const b = document.createElement("td"); b.textContent = it.dst;
+    tr.appendChild(a); tr.appendChild(b);
+    tbody.appendChild(tr);
+  }
+  if (!data.planned.length && !data.failed.length) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td"); td.colSpan = 2; td.textContent = "（无匹配文件）";
+    tr.appendChild(td); tbody.appendChild(tr);
+  }
+}
+
+async function doPreview() {
+  setErr("");
+  const f = form();
+  if (!f.dir) { setErr("请先输入目录"); return; }
+  setStatus("正在识别 " + f.dir + " ...");
+  const data = await post("/api/preview", f);
+  if (!data.ok) { setErr(data.error); setStatus(""); return; }
+  renderPlan(data);
+  setStatus("预览完成");
+}
+
+async function doExecute() {
+  setErr("");
+  const f = form();
+  if (!f.dir) { setErr("请先输入目录"); return; }
+  if (!confirm("将真实改名该目录下的图片（可回滚）。确认继续？")) return;
+  setStatus("正在执行改名 ...");
+  const data = await post("/api/execute", f);
+  if (!data.ok) { setErr(data.error); setStatus(""); return; }
+  setStatus(`执行完成：已重命名 ${data.renamed} 个` + (data.failed.length ? `，失败 ${data.failed.length} 个` : ""));
+  if (data.failed.length) setErr("失败：" + data.failed.map(x => x[0] + " (" + x[1] + ")").join("；"));
+  await listDir(f.dir);
+}
+
+async function doUndo() {
+  setErr("");
+  const f = form();
+  if (!f.dir) { setErr("请先输入目录"); return; }
+  if (!confirm("将回滚该目录下最近一次改名的所有文件。确认继续？")) return;
+  const data = await post("/api/undo", f);
+  if (!data.ok) { setErr(data.error); return; }
+  setStatus(`回滚完成：恢复 ${data.renamed} 个` + (data.failed.length ? `，失败 ${data.failed.length} 个` : ""));
+  if (data.failed.length) setErr("失败：" + data.failed.map(x => x[0] + " (" + x[1] + ")").join("；"));
+  await listDir(f.dir);
+}
+
+async function doTags() {
+  setErr("");
+  const f = form();
+  if (!f.dir) { setErr("请先输入目录"); return; }
+  setStatus("正在生成标签清单 ...");
+  const data = await post("/api/tags", f);
+  if (!data.ok) { setErr(data.error); setStatus(""); return; }
+  setStatus(`已生成 ${data.path}（${data.rows} 行）`);
+}
+
+function loadSample() {
+  $("dir").value = "sample";
+  listDir();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "picren-ai"
+version = "0.1.0"
+description = "图片批量 AI 重命名/整理器：AI 看图、改名、归档一条龙"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+dependencies = [
+    "Pillow>=10.0",
+    "httpx>=0.25",
+]
+
+[project.optional-dependencies]
+rich = ["rich"]
+dev = ["pytest"]
+
+[project.scripts]
+picren = "main:main"
+
+[tool.setuptools]
+py-modules = [
+    "main",
+    "pipeline",
+    "reader",
+    "vision",
+    "rename_rules",
+    "executor",
+    "undo",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
