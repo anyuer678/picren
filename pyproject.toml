@@ -1,37 +1,26 @@
 [build-system]
 requires = ["setuptools>=61"]
- build-backend = "setuptools.build_meta"
+build-backend = "setuptools.build_meta"
 
-[pro ject]
+[project]
 name = "picren-ai"
 version = "0.1.0"
-de scription = "图片批量 AI 重命名/整理 器：AI 看图、改名、归档一条龙"
-r eadme = "README.md"
-requires-python = ">=3.9" 
+description = "图片批量 AI 重命名/整理器：AI 看图、改名、归档一条龙"
+readme = "README.md"
+requires-python = ">=3.9"
 license = { text = "MIT" }
-dependencies  = [
-    "Pillow==12.2.0",
-    "httpx==0.28.1" ,
-]
-
-[project.optional-dependencies]
-rich = [ "rich"]
-dev = ["pytest"]
+dependencies = []
 
 [project.scripts]
-p icren = "main:main"
+picren = "main:main"
 
 [tool.setuptools]
-py-mod ules = [
-    "main",
-    "pipeline",
-    "rea der",
-    "vision",
-    "rename_rules",
-    " executor",
-    "undo",
-]
+py-modules = ["main"]
+include-package-data = true
 
-[tool.pytest.ini_op tions]
+[tool.setuptools.package-data]
+picren = ["*.json"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
 testpaths = ["tests"]
- 
