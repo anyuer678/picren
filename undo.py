@@ -16,6 +16,8 @@ def _map_dir(path: str) -> str:
 
 
 def _to_abs(name: str, base: str) -> str:
+    # Normalize Windows backslashes to current OS separator
+    name = name.replace("\\", "/")
     if os.path.isabs(name):
         return os.path.normpath(name)
     return os.path.normpath(os.path.join(base, name))
