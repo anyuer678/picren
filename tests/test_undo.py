@@ -8,8 +8,8 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from executor import ApplyStats, RenameOp, apply_renames, dry_run_render
-from undo import load_map, reverse_ops, undo_from_map
+from picren.executor import ApplyStats, RenameOp, apply_renames, dry_run_render
+from picren.undo import load_map, reverse_ops, undo_from_map
 
 
 def _op(src, dst, mtime=1234.5):

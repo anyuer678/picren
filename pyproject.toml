@@ -12,10 +12,10 @@ license = { text = "MIT" }
 dependencies = []
 
 [project.scripts]
-picren = "main:main"
+picren = "picren.main:main"
 
 [tool.setuptools]
-py-modules = ["main"]
+packages = ["picren"]
 include-package-data = true
 
 [tool.setuptools.package-data]

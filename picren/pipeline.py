@@ -8,10 +8,10 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
-from executor import ApplyStats, RenameOp, apply_renames
-from reader import ImageFile, collect_images, read_preview
-from rename_rules import render_template, resolve_unique, sanitize_name
-from vision import VisionResult, analyze
+from .executor import ApplyStats, RenameOp, apply_renames
+from .reader import ImageFile, collect_images, read_preview
+from .rename_rules import render_template, resolve_unique, sanitize_name
+from .vision import VisionResult, analyze
 
 DEFAULT_PATTERNS = [".jpg", ".jpeg", ".png", ".heic", ".webp"]
 UNDO_MAP_NAME = "rename_map.csv"
