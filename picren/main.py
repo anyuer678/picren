@@ -8,8 +8,8 @@ import json
 import os
 import sys
 
-from pipeline import UNDO_MAP_NAME, PipelineConfig, run_pipeline
-from undo import undo_from_map
+from .pipeline import UNDO_MAP_NAME, PipelineConfig, run_pipeline
+from .undo import undo_from_map
 
 DEFAULT_API_BASE = "https://api.openai.com/v1"
 DEFAULT_MODEL = "gpt-4o-mini"

@@ -23,9 +23,9 @@ import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 
-import main as cli  # 复用 _load_api_key / _write_tags_csv / KEY_HINT / _iter_plan
-from pipeline import DEFAULT_PATTERNS, UNDO_MAP_NAME, PipelineConfig, run_pipeline
-from undo import undo_from_map
+from . import main as cli  # 复用 _load_api_key / _write_tags_csv / KEY_HINT / _iter_plan
+from .pipeline import DEFAULT_PATTERNS, UNDO_MAP_NAME, PipelineConfig, run_pipeline
+from .undo import undo_from_map
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _PAGE_PATH = os.path.join(_HERE, "webui.html")

@@ -20,7 +20,7 @@ def _make_stubs():
     stubs = {}
 
     # ---- reader ----
-    reader = types.ModuleType("reader")
+    reader = types.ModuleType("picren.reader")
 
     @dataclass
     class ImageFile:
@@ -74,10 +74,10 @@ def _make_stubs():
     reader.ImageReadError = ImageReadError
     reader.collect_images = collect_images
     reader.read_preview = read_preview
-    stubs["reader"] = reader
+    stubs["picren.reader"] = reader
 
     # ---- vision ----
-    vision = types.ModuleType("vision")
+    vision = types.ModuleType("picren.vision")
     REQUIRED_KEYS = ("subject", "category", "scene", "confidence")
     CATEGORIES = ("旅行", "美食", "文档", "宠物", "人物", "街拍", "风景", "运动", "建筑", "其他")
 
@@ -111,10 +111,10 @@ def _make_stubs():
     vision.VisionError = VisionError
     vision._STATE = _STATE
     vision.analyze = analyze
-    stubs["vision"] = vision
+    stubs["picren.vision"] = vision
 
     # ---- rename_rules ----
-    rules = types.ModuleType("rename_rules")
+    rules = types.ModuleType("picren.rename_rules")
     _TOKEN_RE = re.compile(r"\{(\w+)(?::([^}]*))?\}")
     _INVALID = '/\\:*?"<>|'
 
@@ -167,10 +167,10 @@ def _make_stubs():
     rules.render_template = render_template
     rules.sanitize_name = sanitize_name
     rules.resolve_unique = resolve_unique
-    stubs["rename_rules"] = rules
+    stubs["picren.rename_rules"] = rules
 
     # ---- executor ----
-    executor = types.ModuleType("executor")
+    executor = types.ModuleType("picren.executor")
 
     @dataclass
     class RenameOp:
@@ -220,10 +220,10 @@ def _make_stubs():
     executor.ApplyStats = ApplyStats
     executor.apply_renames = apply_renames
     executor.dry_run_render = dry_run_render
-    stubs["executor"] = executor
+    stubs["picren.executor"] = executor
 
     # ---- undo ----
-    undo = types.ModuleType("undo")
+    undo = types.ModuleType("picren.undo")
 
     def load_map(path):
         if not os.path.exists(path):
@@ -289,7 +289,7 @@ def _make_stubs():
     undo.load_map = load_map
     undo.reverse_ops = reverse_ops
     undo.undo_from_map = undo_from_map
-    stubs["undo"] = undo
+    stubs["picren.undo"] = undo
 
     return stubs
 
@@ -300,7 +300,7 @@ def _make_stubs():
 
 @pytest.fixture(scope="module", autouse=True)
 def cli_env():
-    names = ("reader", "vision", "rename_rules", "executor", "undo", "pipeline", "main")
+    names = ("picren.reader", "picren.vision", "picren.rename_rules", "picren.executor", "picren.undo", "picren.pipeline", "picren.main")
     saved = {n: sys.modules.get(n) for n in names}
     stubs = _make_stubs()
     for n, mod in stubs.items():
@@ -308,7 +308,7 @@ def cli_env():
     saved_key = os.environ.get("API_KEY")
     os.environ["API_KEY"] = "stub-test-key"
     try:
-        import main as main_mod
+        import picren.main as main_mod
         yield main_mod, stubs
     finally:
         if saved_key is None:
@@ -375,7 +375,7 @@ def test_nonexistent_dir_exit_1(cli_env, capsys, tmp_path):
 
 def test_dry_run_no_changes(cli_env, tmp_path, capsys):
     main_mod, stubs = cli_env
-    stubs["vision"]._STATE["fail"] = False
+    stubs["picren.vision"]._STATE["fail"] = False
     _make_images(tmp_path, IMG_NAMES)
     before = _snapshot(tmp_path)
     code = main_mod.main(["--dir", str(tmp_path), "--dry-run"])
@@ -393,7 +393,7 @@ def test_dry_run_sample_unchanged(cli_env):
     if not os.path.isdir(sample):
         pytest.skip("sample 目录不存在，跳过")
     main_mod, stubs = cli_env
-    stubs["vision"]._STATE["fail"] = False
+    stubs["picren.vision"]._STATE["fail"] = False
     before = _snapshot(sample)
     # dry-run 无论有无匹配图片（0 有图 / 2 无图）都不允许改动目录
     assert main_mod.main(["--dir", sample, "--dry-run"]) in (0, 2)
@@ -414,7 +414,7 @@ def test_no_api_key_clear_error(cli_env, tmp_path, capsys, monkeypatch):
 
 def test_execute_writes_map_then_undo_restores(cli_env, tmp_path, capsys):
     main_mod, stubs = cli_env
-    stubs["vision"]._STATE["fail"] = False
+    stubs["picren.vision"]._STATE["fail"] = False
     _make_images(tmp_path, IMG_NAMES)
     before_names = sorted(p.name for p in tmp_path.iterdir() if p.name.endswith(".jpg"))
 
@@ -443,7 +443,7 @@ def test_execute_without_dir_undo_reports_missing_map(cli_env, tmp_path, capsys)
 
 def test_fail_ratio_abort_exit_3(cli_env, tmp_path, capsys):
     main_mod, stubs = cli_env
-    stubs["vision"]._STATE["fail"] = True
+    stubs["picren.vision"]._STATE["fail"] = True
     try:
         _make_images(tmp_path, IMG_NAMES)
         code = main_mod.main(["--dir", str(tmp_path), "--dry-run"])
@@ -451,20 +451,20 @@ def test_fail_ratio_abort_exit_3(cli_env, tmp_path, capsys):
         err = capsys.readouterr().err
         assert "识别质量过低" in err
     finally:
-        stubs["vision"]._STATE["fail"] = False
+        stubs["picren.vision"]._STATE["fail"] = False
 
 
 def test_fail_ratio_abort_blocks_execute(cli_env, tmp_path, capsys):
     """execute 模式下识别失败过多同样中止，不产生改名与映射。"""
     main_mod, stubs = cli_env
-    stubs["vision"]._STATE["fail"] = True
+    stubs["picren.vision"]._STATE["fail"] = True
     try:
         _make_images(tmp_path, IMG_NAMES)
         code = main_mod.main(["--dir", str(tmp_path), "--execute"])
         assert code == 3
         assert not (tmp_path / "rename_map.csv").exists()
     finally:
-        stubs["vision"]._STATE["fail"] = False
+        stubs["picren.vision"]._STATE["fail"] = False
 
 
 def test_no_images_exit_2(cli_env, tmp_path, capsys):
@@ -477,7 +477,7 @@ def test_no_images_exit_2(cli_env, tmp_path, capsys):
 
 def test_tags_only_writes_csv(cli_env, tmp_path, capsys):
     main_mod, stubs = cli_env
-    stubs["vision"]._STATE["fail"] = False
+    stubs["picren.vision"]._STATE["fail"] = False
     _make_images(tmp_path, IMG_NAMES)
     code = main_mod.main(["--dir", str(tmp_path), "--tags-only"])
     assert code == 0
@@ -495,7 +495,7 @@ def test_tags_only_writes_csv(cli_env, tmp_path, capsys):
 
 def test_json_output_mode(cli_env, tmp_path, capsys):
     main_mod, stubs = cli_env
-    stubs["vision"]._STATE["fail"] = False
+    stubs["picren.vision"]._STATE["fail"] = False
     _make_images(tmp_path, IMG_NAMES)
     code = main_mod.main(["--dir", str(tmp_path), "--dry-run", "--json"])
     assert code == 0

@@ -6,7 +6,7 @@ import csv
 import os
 from typing import List
 
-from executor import ApplyStats, RenameOp
+from .executor import ApplyStats, RenameOp
 
 _HEADER = ("old_name", "new_name", "mtime")
 

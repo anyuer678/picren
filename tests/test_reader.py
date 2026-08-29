@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import pytest
 from PIL import Image
 
-from reader import ImageReadError, collect_images, read_preview
+from picren.reader import ImageReadError, collect_images, read_preview
 
 
 def make_image(path, size=(1600, 1200), color="red", fmt="JPEG", exif_dt=None):

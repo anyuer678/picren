@@ -9,8 +9,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import pytest
 
-from reader import ImageFile
-from rename_rules import TemplateError, render_template, sanitize_name, resolve_unique
+from picren.reader import ImageFile
+from picren.rename_rules import TemplateError, render_template, sanitize_name, resolve_unique
 
 
 class Result:
