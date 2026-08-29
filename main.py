@@ -13,7 +13,7 @@ from undo import undo_from_map
 
 DEFAULT_API_BASE = "https://api.openai.com/v1"
 DEFAULT_MODEL = "gpt-4o-mini"
-KEY_NAMES = ("API_KEY", "PICRENAME_API_KEY")
+KEY_NAMES = ("PICREN_API_KEY", "PICRENAME_API_KEY", "API_KEY")  # 首选专用名，旧名向后兼容
 
 KEY_HINT = (
     "[picren] 错误：未找到 API Key，无法调用视觉模型。\n"
@@ -45,8 +45,9 @@ def _build_parser() -> _Parser:
     p.add_argument("--template", default="{date}_{category}_{subject}_{index}.{ext}",
                    help="命名模板")
     p.add_argument("--tags-only", action="store_true", help="只生成 tags.csv，不改名")
-    p.add_argument("--dry-run", action="store_true", help="仅预览（默认模式）")
-    p.add_argument("--execute", action="store_true", help="真实执行（先自动预览）")
+    mode = p.add_mutually_exclusive_group()
+    mode.add_argument("--dry-run", action="store_true", help="仅预览，不写盘（默认模式）")
+    mode.add_argument("--execute", action="store_true", help="真实执行（先自动预览）")
     p.add_argument("--undo", action="store_true", help="回滚最近的 rename_map.csv")
     p.add_argument("--move-by-category", action="store_true", help="按类别移入子目录")
     p.add_argument("--keep-original", action="store_true", default=True,
@@ -176,7 +177,7 @@ def _cmd_run(args) -> int:
         recursive=args.recursive,
         patterns=args.pattern or None,
         template=args.template,
-        dry_run_first=not args.execute,
+        dry_run_first=not args.execute,  # 默认 dry-run；--execute 才落盘（--dry-run 与其互斥）
         workers=max(1, args.workers),
         api_base=args.api_base,
         model=args.model,
