@@ -9,7 +9,10 @@ description = "图片批量 AI 重命名/整理器：AI 看图、改名、归档
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
-dependencies = []
+dependencies = [
+    "Pillow>=10.0",
+    "httpx>=0.25",
+]
 
 [project.scripts]
 picren = "picren.main:main"
