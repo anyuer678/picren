@@ -10,7 +10,7 @@ import httpx
 
 REQUIRED_KEYS = ("subject", "category", "scene", "confidence")
 CATEGORIES = ("旅行", "美食", "文档", "宠物", "人物", "街拍", "风景", "运动", "建筑", "其他")
-ENV_API_KEY = "PICRENAME_API_KEY"
+ENV_API_KEYS = ("PICREN_API_KEY", "PICRENAME_API_KEY")  # 首选专用名，旧名兼容
 
 
 @dataclass
@@ -128,9 +128,9 @@ def _post_chat_completions(api_base: str, model: str, prompt: str, data_url: str
 def analyze(preview_bytes: bytes, *, api_base: str, model: str,
             api_key: str, timeout_s: int = 30, retries: int = 1) -> VisionResult:
     """发送压缩图调用视觉模型，失败按 retries 重试，仍失败抛 VisionError。"""
-    key = api_key or os.environ.get(ENV_API_KEY, "")
+    key = api_key or next((os.environ.get(n, "") for n in ENV_API_KEYS if os.environ.get(n)), "")
     if not key:
-        raise VisionError("缺少 API key：请传参 api_key 或设置环境变量 PICRENAME_API_KEY")
+        raise VisionError("缺少 API key：请传参 api_key 或设置环境变量 PICREN_API_KEY")
     prompt = build_vision_prompt()
     data_url = "data:image/jpeg;base64," + base64.b64encode(preview_bytes).decode("ascii")
     attempts = max(0, retries) + 1
