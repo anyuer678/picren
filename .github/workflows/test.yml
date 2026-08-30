@@ -27,6 +27,11 @@ jobs:
           set -o pipefail
           python -m pytest tests/ -v --tb=short 2>&1 | tee pytest-output.log
 
+      - name: Dependency audit
+        run: |
+          pip install pip-audit
+          pip-audit --skip-editable
+
       - name: Publish test output
         if: failure()
         run: |
