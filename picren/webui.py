@@ -177,9 +177,23 @@ def api_tags(directory: str, post: dict) -> dict:
             "failed": len(report.failed)}
 
 
+_LOCAL_HOSTS = {"127.0.0.1", "localhost", "::1"}
+
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):  # 安静日志
         pass
+
+    def _same_origin(self) -> bool:
+        """DNS-rebinding / CSRF 防线：Host 必须是本机回环地址；跨站 Origin 拒绝。"""
+        host = (self.headers.get("Host") or "").rsplit(":", 1)[0].strip("[]").lower()
+        if host not in _LOCAL_HOSTS:
+            return False
+        origin = self.headers.get("Origin")
+        if not origin:
+            return True
+        ohost = (urlparse(origin).hostname or "").lower()
+        return ohost in _LOCAL_HOSTS
 
     def _send(self, code: int, body: bytes, ctype: str = "application/json"):
         self.send_response(code)
@@ -216,6 +230,9 @@ class Handler(BaseHTTPRequestHandler):
             self._json({"ok": False, "error": f"未知端点：{parsed.path}"}, 404)
 
     def do_POST(self):
+        if not self._same_origin():
+            self._json({"ok": False, "error": "cross-origin request rejected"}, 403)
+            return
         parsed = urlparse(self.path)
         post = self._post()
         query = parse_qs(parsed.query)
