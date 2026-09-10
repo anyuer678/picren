@@ -136,6 +136,9 @@ def api_execute(directory: str, post: dict) -> dict:
     if not _api_key_hint(post):
         return {"ok": False, "need_key": True,
                 "error": "未配置 API Key：请在页面填写，或设置环境变量 API_KEY"}
+    if post.get("confirm") != "yes":
+        return {"ok": False, "need_confirm": True,
+                "error": "执行将批量改名，请在页面输入 confirm=yes 确认"}
     if not os.path.isdir(directory):
         return {"ok": False, "error": f"目录不存在：{directory}"}
     cfg = _build_cfg(directory, post, dry_run_first=False)
