@@ -3,7 +3,7 @@
 > 把 `IMG_20230101_103055.jpg` 变成 `旅行_日本_东京塔_2026.jpg`：AI 看图 → 中文语义命名 → 归档，一条龙。
 
 [![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-110%20passed-brightgreen)](tests/)
 [![Deps](https://img.shields.io/badge/deps-Pillow%20%2B%20httpx-blueviolet)](requirements.txt)
 
@@ -92,4 +92,4 @@ python -m pytest tests/ -q
 
 ## License
 
-[GPL-3.0](LICENSE) — Copyright (C) 2026 anyuer678
+[MIT License](LICENSE) — Copyright (c) 2026 anyuer678
