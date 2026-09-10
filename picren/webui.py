@@ -223,6 +223,9 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path == "/":
             self._send(200, _load_page(), "text/html")
         elif parsed.path == "/api/list":
+            if not self._same_origin():
+                self._json({"ok": False, "error": "cross-origin request rejected"}, 403)
+                return
             self._json(api_list((query.get("path", [""])[0] or "").strip()))
         elif parsed.path == "/api/health":
             self._json({"ok": True, "app": "picren-webui"})
