@@ -200,6 +200,7 @@ async function doExecute() {
   if (!f.dir) { setErr("请先输入目录"); return; }
   if (!confirm("将真实改名该目录下的图片（可回滚）。确认继续？")) return;
   setStatus("正在执行改名 ...");
+  f.confirm = "yes";
   const data = await post("/api/execute", f);
   if (!data.ok) { setErr(data.error); setStatus(""); return; }
   setStatus(`执行完成：已重命名 ${data.renamed} 个` + (data.failed.length ? `，失败 ${data.failed.length} 个` : ""));
