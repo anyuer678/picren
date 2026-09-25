@@ -1,5 +1,7 @@
 # PicRename AI —— 图片批量 AI 重命名/整理器
 
+[![Tests](https://github.com/anyuer678/picren/actions/workflows/test.yml/badge.svg)](https://github.com/anyuer678/picren/actions/workflows/test.yml)
+
 > 把 `IMG_20230101_103055.jpg` 变成 `旅行_日本_东京塔_2026.jpg`：AI 看图 → 中文语义命名 → 归档，一条龙。
 
 [![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
