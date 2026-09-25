@@ -7,7 +7,7 @@
 [![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-110%20passed-brightgreen)](tests/)
-[![Deps](https://img.shields.io/badge/deps-Pillow%20%2B%20httpx-blueviolet)](requirements.txt)
+[![Deps](https://img.shields.io/badge/deps-Pillow%20%2B%20httpx-blueviolet)](pyproject.toml)
 
 高频、隐私刚需场景：相册几百张图批量整理。图片压缩至最长边 800px 后才发送给视觉模型，支持完全本地模型（Ollama 等）。
 
