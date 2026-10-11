@@ -17,6 +17,10 @@ dependencies = [
 [project.scripts]
 picren = "picren.main:main"
 
+
+[project.urls]
+Repository = "https://github.com/anyuer678/picren"
+Issues = "https://github.com/anyuer678/picren/issues"
 [tool.setuptools]
 packages = ["picren"]
 include-package-data = true
